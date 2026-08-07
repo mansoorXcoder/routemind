@@ -12,14 +12,16 @@ from backend.app.core.security import hash_password
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("seed")
 
-DATA_DIR = r"p:\Documents\Git\route-mind\almrrc2021\almrrc2021-data-training\model_build_inputs"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+DATA_DIR = os.path.join(BASE_DIR, "almrrc2021", "almrrc2021-data-training", "model_build_inputs")
 
 async def seed_data():
     logger.info("Starting database seeding...")
     
-    # Ensure tables are created
+    # Ensure tables are created cleanly
     from backend.app.database.base import Base
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
         
     async with SessionLocal() as db:
