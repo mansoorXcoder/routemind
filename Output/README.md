@@ -133,6 +133,10 @@ These help communicate business impact during the demo.
 
 # Alignment with AI Build 2026
 
+
+<img width="1920" height="1080" alt="ai_supervisor" src="https://github.com/user-attachments/assets/38243f01-0e53-4f22-be5f-4cfb05476fe8" />
+
+
   Requirement            Status
   ---------------------- --------
   Route Planning         ✅
