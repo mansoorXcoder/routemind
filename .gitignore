@@ -1,0 +1,42 @@
+# Python Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+doc/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# SQLite Databases & Cache
+routemind.db
+*.db
+*.sqlite3
+uvicorn.log
+
+# Large Datasets & Raw Data
+almrrc2021/
+data/
+datasets/
+*.zip
+*.tar.gz
+*.jsonl
+
+# Environment Configs
+.env
+.env.local
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS Specific Files
+Thumbs.db
+Desktop.ini
+.DS_Store
