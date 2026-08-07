@@ -34,7 +34,7 @@ against the AI Build 2026 RouteMind problem statement.
 -   Useful dispatcher activity panel.
 -   Good chart hierarchy.
 
-P:\Documents\Git\routemind\Output\dashboard.png
+<img width="1920" height="1080" alt="dashboard" src="https://github.com/user-attachments/assets/10c07d96-ea22-4e09-a69d-0dca3bf44b15" />
 
 
 ## Live Route Map
@@ -43,7 +43,9 @@ P:\Documents\Git\routemind\Output\dashboard.png
 -   Live vehicle markers.
 -   Online/Idle indicators.
 -   Clean layout.
-![Alt text](images/live_route_map.png)
+
+<img width="1920" height="1080" alt="live_route_map" src="https://github.com/user-attachments/assets/f6601b0e-d359-4b8b-99ed-401e818ceb5a" />
+
 
 ## Routes Module
 
@@ -66,14 +68,17 @@ supervisors understand **why** a route changed before approving it.
 
 -   Card layout looks polished.
 -   Ratings and experience are useful.
-![Alt text](images/drivers.png)
+
+  <img width="1920" height="1080" alt="drivers" src="https://github.com/user-attachments/assets/44b2ca91-50ec-499b-8193-a9c522ab5d86" />
+
 
 ## Vehicles
 
 -   Clean fleet overview.
 -   Easy to extend later with telemetry.
-![Alt text](images/vehicles.png)
 
+  
+<img width="1920" height="1080" alt="vehicles" src="https://github.com/user-attachments/assets/63d84264-2e8d-4d91-af83-77d00506e465" />
 
 ## Analytics
 
@@ -81,7 +86,9 @@ supervisors understand **why** a route changed before approving it.
 -   Distance savings
 -   Carbon savings
 -   Cost savings
-![Alt text](images/analytics.png)
+
+<img width="1920" height="1080" alt="analytics" src="https://github.com/user-attachments/assets/1aa7c1e6-a92a-4118-ac3f-2debc33b1bed" />
+
 
 
 These help communicate business impact during the demo.
