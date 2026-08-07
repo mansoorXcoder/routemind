@@ -27,7 +27,7 @@ datasets/
 # Environment Configs
 .env
 .env.local
-.env.example
+*.env.example
 
 # IDEs and Editors
 .vscode/
