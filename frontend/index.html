@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMind - AI-Powered Logistics Route Optimization</title>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563EB',
+                        success: '#16A34A',
+                        warning: '#F59E0B',
+                        danger: '#DC2626',
+                        info: '#0EA5E9',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet.js Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0F19;
+            color: #F3F4F6;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 3px;
+        }
+        /* Leaflet custom dark theme */
+        .leaflet-container {
+            background-color: #111827 !important;
+        }
+        .leaflet-tile {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="overflow-hidden h-screen w-screen flex">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 border-r border-gray-800 bg-[#0F1322] flex flex-col justify-between shrink-0">
+        <div>
+            <!-- Logo Section -->
+            <div class="h-16 flex items-center px-6 gap-3 border-b border-gray-800">
+                <div class="bg-primary p-2 rounded-xl text-white">
+                    <i data-lucide="route" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight text-white">RouteMind</h1>
+                    <span class="text-xs text-gray-400 font-medium">AI Fleet Dispatch</span>
+                </div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1.5">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-white bg-primary bg-opacity-10 border border-primary border-opacity-20">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('map')" id="btn-map" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i data-lucide="map" class="w-5 h-5"></i> Live Route Map
+                </button>
+                <button onclick="switchTab('routes')" id="btn-routes" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i data-lucide="navigation" class="w-5 h-5"></i> Routes List
+                </button>
+                <button onclick="switchTab('drivers')" id="btn-drivers" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i data-lucide="users" class="w-5 h-5"></i> Drivers
+                </button>
+                <button onclick="switchTab('vehicles')" id="btn-vehicles" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i data-lucide="truck" class="w-5 h-5"></i> Vehicles
+                </button>
+                <button onclick="switchTab('analytics')" id="btn-analytics" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Analytics
+                </button>
+                <button onclick="switchTab('settings')" id="btn-settings" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Settings
+                </button>
+            </nav>
+        </div>
+        
+        <!-- User Profile Card -->
+        <div class="p-4 border-t border-gray-800 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-white uppercase" id="user-avatar">
+                SM
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-white" id="user-name">Mansoor Supervisor</p>
+                <span class="text-xs text-gray-500 font-medium" id="user-role">Hub Supervisor</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col min-w-0 bg-[#090C16]">
+        
+        <!-- TOP NAVIGATION BAR -->
+        <header class="h-16 border-b border-gray-800 bg-[#0F1322] flex items-center justify-between px-8 shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-400" id="current-date-text">Friday, Aug 7, 2026</span>
+                <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-success bg-opacity-10 text-success border border-success border-opacity-20 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span> Backend Connected
+                </span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Notifications Bell -->
+                <div class="relative cursor-pointer" onclick="toggleNotifications()">
+                    <i data-lucide="bell" class="w-5 h-5 text-gray-400 hover:text-white"></i>
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-danger" id="notif-badge"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENT VIEW CONTAINER -->
+        <div class="flex-1 overflow-y-auto p-8" id="content-views">
+            
+            <!-- VIEW: DASHBOARD -->
+            <section id="view-dashboard" class="space-y-8">
+                <!-- Welcome Section -->
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Logistics Overview</h2>
+                    <p class="text-gray-400 text-sm mt-1">Real-time KPIs and AI dispatch summary.</p>
+                </div>
+                
+                <!-- KPI GRID -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-500 font-semibold uppercase">Total Routes</span>
+                            <h3 class="text-3xl font-bold text-white mt-1" id="kpi-routes">-</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 text-primary p-4 rounded-xl border border-primary border-opacity-10">
+                            <i data-lucide="route" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-500 font-semibold uppercase">Active Vehicles</span>
+                            <h3 class="text-3xl font-bold text-white mt-1" id="kpi-vehicles">-</h3>
+                        </div>
+                        <div class="bg-info bg-opacity-10 text-info p-4 rounded-xl border border-info border-opacity-10">
+                            <i data-lucide="truck" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-500 font-semibold uppercase">Avg Score</span>
+                            <h3 class="text-3xl font-bold text-white mt-1" id="kpi-score">-%</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 text-success p-4 rounded-xl border border-success border-opacity-10">
+                            <i data-lucide="zap" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-gray-500 font-semibold uppercase">Fuel Saved</span>
+                            <h3 class="text-3xl font-bold text-white mt-1" id="kpi-fuel">- L</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 text-warning p-4 rounded-xl border border-warning border-opacity-10">
+                            <i data-lucide="droplet" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CHARTS & ACTIVITIES -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Charts Panel -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-white">Daily Dispatch Trend</h4>
+                        </div>
+                        <div class="h-64 relative">
+                            <canvas id="dispatchChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Activity Feed Panel -->
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                        <h4 class="font-bold text-white mb-4">Dispatcher Activities</h4>
+                        <div class="flex-1 space-y-4 overflow-y-auto pr-2" id="activity-feed-list">
+                            <!-- Activities populated by JS -->
+                            <p class="text-gray-500 text-sm">Loading feed...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: LIVE MAP -->
+            <section id="view-map" class="hidden h-full flex flex-col space-y-4">
+                <div class="flex justify-between items-center shrink-0">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Live Tracking Map</h2>
+                        <p class="text-gray-400 text-sm mt-1">Real-time GPS updates and animated delivery progress.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-800 text-xs text-white border border-gray-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-success rounded-full"></span> Online
+                        </span>
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-800 text-xs text-white border border-gray-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 bg-warning rounded-full"></span> Idle
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 min-h-0 w-full rounded-2xl overflow-hidden relative border border-gray-800 shadow-2xl">
+                    <div id="live-map-container" class="h-full w-full"></div>
+                </div>
+            </section>
+
+            <!-- VIEW: ROUTES LIST -->
+            <section id="view-routes" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Fleet Routes</h2>
+                        <p class="text-gray-400 text-sm mt-1">Manage, run AI optimizations, and check dispatcher flows.</p>
+                    </div>
+                </div>
+                
+                <!-- Table Panel -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-800 text-xs text-gray-500 font-semibold uppercase bg-gray-900 bg-opacity-40">
+                                <th class="px-6 py-4">Route ID</th>
+                                <th class="px-6 py-4">Assigned Vehicle</th>
+                                <th class="px-6 py-4">Driver</th>
+                                <th class="px-6 py-4">Stops</th>
+                                <th class="px-6 py-4">Distance</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routes-table-body" class="divide-y divide-gray-800 text-sm text-gray-300">
+                            <!-- Populated dynamically by JS -->
+                            <tr>
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading routes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VIEW: DRIVERS -->
+            <section id="view-drivers" class="hidden space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Fleet Drivers</h2>
+                    <p class="text-gray-400 text-sm mt-1">Performance, license ratings, and working schedules.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="drivers-card-grid">
+                    <!-- Populated dynamically by JS -->
+                </div>
+            </section>
+
+            <!-- VIEW: VEHICLES -->
+            <section id="view-vehicles" class="hidden space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Active Vehicles</h2>
+                    <p class="text-gray-400 text-sm mt-1">Load capacity thresholds, fuel types, and telemetry coordinates.</p>
+                </div>
+                
+                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-800 text-xs text-gray-500 font-semibold uppercase bg-gray-900 bg-opacity-40">
+                                <th class="px-6 py-4">Plate Number</th>
+                                <th class="px-6 py-4">Type</th>
+                                <th class="px-6 py-4">Load Limit</th>
+                                <th class="px-6 py-4">Fuel</th>
+                                <th class="px-6 py-4">Assigned Driver</th>
+                                <th class="px-6 py-4">Telemetry Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicles-table-body" class="divide-y divide-gray-800 text-sm text-gray-300">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- VIEW: ANALYTICS -->
+            <section id="view-analytics" class="hidden space-y-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Optimization Performance</h2>
+                    <p class="text-gray-400 text-sm mt-1">Aggregated savings analytics and carbon offset reports.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Savings summary chart -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-4">
+                        <h4 class="font-bold text-white">Cumulative Fuel & Distance Savings</h4>
+                        <div class="h-64">
+                            <canvas id="savingsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Impact analytics card -->
+                    <div class="glass-panel p-6 rounded-2xl space-y-6 flex flex-col justify-between">
+                        <h4 class="font-bold text-white">Environmental & Expense Summary</h4>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="bg-success bg-opacity-5 p-5 rounded-2xl border border-success border-opacity-10">
+                                <span class="text-xs text-gray-500 font-semibold block uppercase">Total Carbon Saved</span>
+                                <h3 class="text-2xl font-bold text-success mt-1" id="analytics-carbon">0.0 kg CO2</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-5 p-5 rounded-2xl border border-primary border-opacity-10">
+                                <span class="text-xs text-gray-500 font-semibold block uppercase">Total Cost Saved</span>
+                                <h3 class="text-2xl font-bold text-primary mt-1" id="analytics-cost">0.0 INR</h3>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Total Distance Saved</span>
+                                <span class="font-bold text-white" id="analytics-distance">0 km</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Total Time Saved</span>
+                                <span class="font-bold text-white" id="analytics-time">0 min</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">AI Coordinator Success Rate</span>
+                                <span class="font-bold text-success" id="analytics-approval">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: SETTINGS -->
+            <section id="view-settings" class="hidden space-y-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">System Settings</h2>
+                    <p class="text-gray-400 text-sm mt-1">Configure AI LLM models, adapters, and environment thresholds.</p>
+                </div>
+                
+                <div class="max-w-2xl glass-panel p-8 rounded-2xl space-y-6">
+                    <form id="settings-form" class="space-y-6" onsubmit="saveSettings(event)">
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-gray-300 block">AI Provider</label>
+                            <select id="settings-provider" class="w-full bg-[#161D2F] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary">
+                                <option value="google">Google AI (Gemini)</option>
+                                <option value="openrouter">OpenRouter API</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-gray-300 block">Routine Model Name</label>
+                            <input type="text" id="settings-routine" class="w-full bg-[#161D2F] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-gray-300 block">Reasoning Model Name</label>
+                            <input type="text" id="settings-reasoning" class="w-full bg-[#161D2F] border border-gray-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary">
+                        </div>
+                        
+                        <button type="submit" class="bg-primary text-white font-semibold rounded-xl px-6 py-3 hover:bg-opacity-90 transition-all">
+                            Save Configuration
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- NOTIFICATION MODAL DRAWER -->
+    <div id="notif-drawer" class="hidden fixed top-16 right-8 w-96 max-h-[80vh] overflow-y-auto glass-panel shadow-2xl rounded-2xl z-50 p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-800">
+            <h4 class="font-bold text-white">System Alerts</h4>
+            <button onclick="markAllNotificationsRead()" class="text-xs text-primary font-semibold hover:underline">Mark as read</button>
+        </div>
+        <div class="space-y-4 flex-1" id="notifications-list">
+            <!-- Populated dynamically -->
+            <p class="text-gray-500 text-sm">No new alerts.</p>
+        </div>
+    </div>
+
+    <!-- AI SUPERVISOR APPROVAL DIALOG MODAL -->
+    <div id="approval-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="glass-panel w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900 bg-opacity-40">
+                <div class="flex items-center gap-2 text-primary">
+                    <i data-lucide="bot" class="w-6 h-6"></i>
+                    <h3 class="font-bold text-lg text-white">AI Supervisor Approval Interface</h3>
+                </div>
+                <button onclick="closeApprovalModal()" class="text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-8 overflow-y-auto flex-1 space-y-6">
+                <!-- Alert/Reason trigger -->
+                <div class="bg-primary bg-opacity-5 border border-primary border-opacity-15 p-5 rounded-2xl">
+                    <h5 class="text-xs font-semibold text-primary uppercase">Optimization Trigger</h5>
+                    <p class="text-sm text-gray-300 mt-1" id="modal-trigger-reason">Analyzing RouteMind sequence layout...</p>
+                </div>
+                
+                <!-- Route stats old vs new -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-gray-900 bg-opacity-60 p-5 rounded-2xl border border-gray-800">
+                        <span class="text-xs text-gray-500 font-bold uppercase block">Original Route</span>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div>
+                                <span class="text-[10px] text-gray-500 uppercase">Distance</span>
+                                <p class="text-lg font-bold text-white" id="modal-old-distance">- km</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-500 uppercase">Duration</span>
+                                <p class="text-lg font-bold text-white" id="modal-old-duration">- min</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-primary bg-opacity-5 p-5 rounded-2xl border border-primary border-opacity-15">
+                        <span class="text-xs text-primary font-bold uppercase block">Proposed Optimized Route</span>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div>
+                                <span class="text-[10px] text-gray-500 uppercase">Distance</span>
+                                <p class="text-lg font-bold text-white" id="modal-new-distance">- km</p>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-gray-500 uppercase">Duration</span>
+                                <p class="text-lg font-bold text-white" id="modal-new-duration">- min</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Savings overview cards -->
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="bg-success bg-opacity-5 p-5 rounded-2xl border border-success border-opacity-15">
+                        <span class="text-[10px] text-gray-500 uppercase">Fuel Saved</span>
+                        <p class="text-xl font-bold text-success" id="modal-fuel-saved">- L</p>
+                    </div>
+                    <div class="bg-success bg-opacity-5 p-5 rounded-2xl border border-success border-opacity-15">
+                        <span class="text-[10px] text-gray-500 uppercase">CO2 Savings</span>
+                        <p class="text-xl font-bold text-success" id="modal-co2-saved">- kg</p>
+                    </div>
+                    <div class="bg-info bg-opacity-5 p-5 rounded-2xl border border-info border-opacity-15">
+                        <span class="text-[10px] text-gray-500 uppercase">AI Confidence Score</span>
+                        <p class="text-xl font-bold text-info" id="modal-confidence">- %</p>
+                    </div>
+                </div>
+                
+                <!-- AI Explanation and Constraints checks -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-white text-sm">AI Explanation</h4>
+                        <div class="bg-[#111625] p-5 rounded-2xl border border-gray-800 text-sm text-gray-300 leading-relaxed" id="modal-explanation-text">
+                            No explanation.
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-white text-sm">Business Constraints Checks</h4>
+                        <div class="bg-[#111625] p-5 rounded-2xl border border-gray-800 space-y-3" id="modal-constraints-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="p-6 border-t border-gray-800 flex justify-end gap-3 bg-gray-900 bg-opacity-40">
+                <button onclick="closeApprovalModal()" class="px-5 py-2.5 rounded-xl border border-gray-700 text-gray-300 text-sm font-semibold hover:bg-gray-800 transition-all">
+                    Cancel
+                </button>
+                <button id="modal-reject-btn" class="px-5 py-2.5 rounded-xl border border-danger text-danger text-sm font-semibold hover:bg-danger hover:text-white hover:bg-opacity-10 transition-all">
+                    Reject Plan
+                </button>
+                <button id="modal-approve-btn" class="px-5 py-2.5 rounded-xl bg-success text-white text-sm font-semibold hover:bg-opacity-90 transition-all">
+                    Approve & Dispatch
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Frontend Core Application Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
