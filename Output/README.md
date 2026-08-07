@@ -33,7 +33,8 @@ against the AI Build 2026 RouteMind problem statement.
 -   Clear KPI cards.
 -   Useful dispatcher activity panel.
 -   Good chart hierarchy.
-![Alt text](images/dashbord.png)
+
+P:\Documents\Git\routemind\Output\dashboard.png
 
 
 ## Live Route Map
