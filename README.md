@@ -308,29 +308,6 @@ For large datasets, download them separately and place them in the appropriate `
 
 ---
 
-## 🔐 Environment Variables
-
-Create a local `.env` file:
-
-```env
-GOOGLE_API_KEY=
-OPENROUTER_API_KEY=
-DATABASE_URL=
-REDIS_URL=
-JWT_SECRET=
-MINIO_ENDPOINT=
-MINIO_ACCESS_KEY=
-MINIO_SECRET_KEY=
-```
-
-### ⚠️ Security
-
-**Never commit the actual `.env` file or API keys to GitHub.**
-
-Use `.env.example` as a template.
-
----
-
 ## 🚀 Installation
 
 ### 1. Clone the repository
