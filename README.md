@@ -427,12 +427,6 @@ RouteMind is designed around the following areas:
 
 ---
 
-## 📄 License
-
-MIT License
-
----
-
 ## 🏁 Built For
 
 **Google AI Build 2026 Hackathon**
